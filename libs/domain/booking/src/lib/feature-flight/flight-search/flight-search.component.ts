@@ -6,29 +6,18 @@ import { FlightCardComponent, FlightFilterComponent } from '../../ui-flight';
 
 
 @Component({
-  selector: 'app-flight-search',
+  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
     FlightCardComponent,
     FlightFilterComponent
   ],
+  selector: 'app-flight-search',
   templateUrl: './flight-search.component.html',
 })
 export class FlightSearchComponent {
-  private store = inject(BookingStore)
-
-  protected filter = this.store.filter;
-  protected basket = this.store.basket;
-  protected flights = this.store.flights
-
-  protected search(filter: FlightFilter): void {
-    this.store.setFilter(filter);
-
-    if (!this.filter.from || !this.filter.to) {
-      return;
-    }
-  }
+  protected store = inject(BookingStore);
 
   protected delay(flight: Flight): void {
     const oldFlight = flight;
@@ -41,10 +30,8 @@ export class FlightSearchComponent {
       delayed: true
     };
 
-    // TODO: needs to be fixed
-  }
-
-  protected reset(): void {
-    this.store.setFlights([]);
+    this.store.setFlights(this.store.flightEntities().map(
+      flight => flight.id === newFlight.id ? newFlight : flight
+    ));
   }
 }
