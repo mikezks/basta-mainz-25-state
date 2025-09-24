@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { injectDispatch } from '@ngrx/signals/events';
 import { BookingStore } from '../../logic-flight';
 import { flightEvents } from '../../logic-flight/state/flight.events';
@@ -11,7 +10,6 @@ import { FlightCardComponent, FlightFilterComponent } from '../../ui-flight';
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     FlightCardComponent,
     FlightFilterComponent
   ],

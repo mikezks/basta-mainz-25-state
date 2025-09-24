@@ -1,33 +1,28 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
-import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, input, linkedSignal, output } from '@angular/core';
+import { Control, form, required, schema } from '@angular/forms/signals';
 import { FlightFilter } from '../../logic-flight';
 
 
+const flightFilterSchema = schema<FlightFilter>(filterPath => {
+  required(filterPath.from);
+  required(filterPath.to);
+});
+
+  
 @Component({
   selector: 'app-flight-filter',
   imports: [
-    ReactiveFormsModule
+    Control
   ],
   templateUrl: './flight-filter.component.html'
 })
 export class FlightFilterComponent {
-  @Input() set filter(filter: FlightFilter) {
-    this.inputFilterForm.setValue(filter);
-  }
-
-  @Output() filterChange = new EventEmitter<FlightFilter>();
-
-  protected inputFilterForm = inject(FormBuilder).nonNullable.group({
-    from: ['', [Validators.required]],
-    to: ['', [Validators.required]],
-    urgent: [false],
-  });
-
-  protected selectedFilterControl = new FormControl(this.inputFilterForm.getRawValue(), {
-    nonNullable: true,
-  });
+  filter = input.required<FlightFilter>();
+  filterChange = output<FlightFilter>();
+  private filterState = linkedSignal(this.filter);
+  protected inputFilterForm = form(this.filterState, flightFilterSchema);
 
   protected triggerSearch(): void {
-    this.filterChange.emit(this.inputFilterForm.getRawValue());
+    this.filterChange.emit(this.filterState());
   }
 }
