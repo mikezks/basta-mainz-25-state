@@ -1,7 +1,7 @@
 import { WritableSignal, computed } from "@angular/core";
 
 
-function delegated<T>(
+export function delegated<T>(
   signalGetter: () => T,
   setFn: (value: T) => void
 ): WritableSignal<T> {
