@@ -1,14 +1,14 @@
 import { computed, inject } from '@angular/core';
 import { mapResponse } from '@ngrx/operators';
-import { signalStore, type, withComputed, withProps, withState } from '@ngrx/signals';
-import { entityConfig, removeAllEntities, setAllEntities, updateEntity, withEntities } from '@ngrx/signals/entities';
-import { Events, on, withEffects, withReducer } from '@ngrx/signals/events';
+import { signalStore, type, withComputed, withMethods, withProps, withState } from '@ngrx/signals';
+import { entityConfig, removeAllEntities, setAllEntities, updateEntity, upsertEntity, withEntities } from '@ngrx/signals/entities';
+import { Events, injectDispatch, on, withEffects, withReducer } from '@ngrx/signals/events';
 import { switchMap } from 'rxjs';
 import { FlightService } from '../data-access/flight.service';
 import { Flight } from '../model/flight';
 import { FlightFilter } from '../model/flight-filter';
 import { flightEvents } from './flight.events';
-import { addMinutes } from '@flight-demo/shared/core';
+import { addMinutes, delegated } from '@flight-demo/shared/core';
 
 
 export interface BookingState {
@@ -42,11 +42,30 @@ export const BookingStore = signalStore(
   withEntities(flightConfig),
   withProps(() => ({
     _events: inject(Events),
-    _flightService: inject(FlightService)
+    _flightEvents: injectDispatch(flightEvents),
+    _flightService: inject(FlightService),
   })),
   withComputed(store => ({
     delayedFlights: computed(
       () => store.flightEntities().filter(flight => flight.delayed)
+    ),
+  })),
+  withMethods(store => ({
+    writableFilter: delegated(
+      store.filter,
+      store._flightEvents.flightFilterChanged
+    ),
+    createFlightWithDelayUpdater: (flight: Flight) => delegated(
+      () => flight,
+      () => store._flightEvents.flightDelayTriggered({
+        id: flight.id
+      })
+    ),
+    createBasketSelection: (id: number) => delegated(
+      () => store.basket()[id],
+      selected => store._flightEvents.flightSelectionChanged(
+        { id, selected }
+      )
     ),
   })),
   // Updaters
@@ -55,6 +74,8 @@ export const BookingStore = signalStore(
     on(flightEvents.flightSelectionChanged, ({ payload: { id, selected }}, state) => ({
       basket: { ...state.basket, [id]: selected }
     })),
+    on(flightEvents.flightUpdated, ({ payload: flight }) =>
+      upsertEntity(flight, flightConfig)),
     on(flightEvents.flightsLoaded, ({ payload: flights }) =>
       setAllEntities(flights, flightConfig)),
     on(flightEvents.flightDelayTriggered, ({ payload: { id, min }}) =>

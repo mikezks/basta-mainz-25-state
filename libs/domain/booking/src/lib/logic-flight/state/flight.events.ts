@@ -10,6 +10,7 @@ export const flightEvents = eventGroup({
     flightFilterChanged: type<FlightFilter>(),
     flightSelectionChanged: type<{ id: number; selected: boolean; }>(),
     flightDelayTriggered: type<{ id: number; min?: number; }>(),
+    flightUpdated: type<Flight>(),
     flightsLoaded: type<Flight[]>(),
     flightsLoadedError: type<{ error: unknown }>(),
     flightsResetTriggered: type<void>(),

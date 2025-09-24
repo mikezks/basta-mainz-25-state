@@ -6,10 +6,7 @@
   </div>
   
   <div class="card-body">
-    <app-flight-filter
-      [filter]="store.filter()"
-      (filterChange)="flightEvents.flightFilterChanged($event)"
-    >
+    <app-flight-filter [(filter)]="store.writableFilter">
       @if (flights.length) {
         <div class="flight-filter-info">
           {{ flights.length }} flights found!
@@ -26,17 +23,13 @@
 
 <div class="row">
   @for (flight of flights; track flight.id) {
+    @let item = store.createFlightWithDelayUpdater(flight);
+    @let basketSelection = store.createBasketSelection(flight.id);
     <div class="col-xs-12 col-sm-6 col-md-4">
       <app-flight-card
-        [item]="flight"
-        [selected]="store.basket()[flight.id]"
-        (selectedChange)="flightEvents.flightSelectionChanged({
-          id: flight.id, selected: $event
-        })"
-        (delayTrigger)="flightEvents.flightDelayTriggered({
-          id: flight.id
-        })"
-        />
+        [(item)]="item"
+        [(selected)]="basketSelection"
+      />
     </div>
   }
 </div>
